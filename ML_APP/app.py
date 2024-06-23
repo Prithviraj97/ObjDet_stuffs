@@ -253,7 +253,7 @@ if not os.path.exists('static/uploaded_videos'):
 # Initialize SORT tracker
 mot_tracker = Sort()
 
-def detect_person(frame):
+def detect_person(frame): 
     results = model(frame)
     persons = results.xyxy[0].numpy()
     return persons
