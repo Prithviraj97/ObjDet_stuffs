@@ -1,0 +1,84 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Video Detection</title>
+    <style>
+        #video_feed {
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Detection</h1>
+    <input type="file" id="file" name="file">
+    <button onclick="uploadVideo()">Upload Video</button>
+    <button onclick="useWebcam()">Use Webcam</button>
+    <img src="" id="video_feed">
+    
+    <script>
+        function uploadVideo() {
+            var file = document.getElementById('file').files[0];
+            var formData = new FormData();
+            formData.append('video_file', file);
+            fetch('/upload_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(() => {
+                var video_path = 'uploaded_videos/' + file.name;
+                document.getElementById('video_feed').src = '/uploaded_video_feed?video_path=' + video_path;
+            });
+        }
+        
+        function useWebcam() {
+            document.getElementById('video_feed').src = '/webcam_feed';
+        }
+    </script>
+</body>
+</html> -->
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Detection</title>
+    <style>
+        #video_feed {
+            margin: 0 auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Detection</h1>
+    <input type="file" id="file" name="file">
+    <button onclick="uploadVideo()">Upload Video</button>
+    <button onclick="useWebcam()">Use Webcam</button>
+    <img src="" id="video_feed">
+    
+    <script>
+        function uploadVideo() {
+            var file = document.getElementById('file').files[0];
+            var formData = new FormData();
+            formData.append('video_file', file);
+            fetch('/upload_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(() => {
+                var video_path = 'static/uploaded_videos' + file.name;
+                document.getElementById('video_feed').src = '/uploaded_video_feed?video_path=' + video_path;
+            });
+        }
+        
+        function useWebcam() {
+            document.getElementById('video_feed').src = '/webcam_feed';
+        }
+    </script>
+</body>
+</html>
