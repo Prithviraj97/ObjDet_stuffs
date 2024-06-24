@@ -246,75 +246,147 @@ from collections import defaultdict
 
 # Ensure correct number of threads
 num_threads = mp.cpu_count()
-print(f"Number of threads: {num_threads}")
 
 # Define distributions using parameters
-mu_00 = mu_11 = 1
-mu_01 = mu_10 = -1
-sigma_00 = sigma_01 = sigma_10 = sigma_11 = 1
+mu_00 = mu_11 = 1  # Mean for optimal distributions
+mu_01 = mu_10 = -1  # Mean for suboptimal distributions
+sigma_00 = sigma_01 = sigma_10 = sigma_11 = 1  # Standard deviation for all distributions
 
 # Statistical functions
+# Probability density function (PDF) for optimal distribution
 f_opt = lambda x: stats.norm.pdf(x, mu_00, sigma_00)
+# Cumulative distribution function (CDF) for optimal distribution
 F_opt = lambda x: stats.norm.cdf(x, mu_00, sigma_00)
+# PDF for suboptimal distribution
 f_sub = lambda x: stats.norm.pdf(x, mu_01, sigma_01)
+# CDF for suboptimal distribution
 F_sub = lambda x: stats.norm.cdf(x, mu_01, sigma_01)
+# PDF for optimal distribution (second variable)
 g_opt = lambda v: stats.norm.pdf(v, mu_11, sigma_11)
+# CDF for optimal distribution (second variable)
 G_opt = lambda v: stats.norm.cdf(v, mu_11, sigma_11)
+# PDF for suboptimal distribution (second variable)
 g_sub = lambda v: stats.norm.pdf(v, mu_10, sigma_10)
+# CDF for suboptimal distribution (second variable)
 G_sub = lambda v: stats.norm.cdf(v, mu_10, sigma_10)
 
 # Precompute integrals for h functions if they are often reused
 h_cache = defaultdict(float)
 
 def h_00(K, i):
+    """
+    Compute the h_00 function.
+
+    Parameters:
+    K (int): Total number of individuals
+    i (int): Number of individuals with a certain trait
+
+    Returns:
+    float: The result of the h_00 function
+    """
     key = ("h_00", K, i)
     if key in h_cache:
         return h_cache[key]
     
     def f(x, v):
+        # Compute the joint probability density function
         return f_opt(x) * (K - i) * F_opt(x)**(K - i - 1) * g_sub(v) * i * G_sub(v)**(i - 1)
     
+    # Compute the double integral
     result, _ = integrate.dblquad(f, -np.inf, np.inf, lambda v: -np.inf, lambda v: v)
     h_cache[key] = 1 - result
     return h_cache[key]
 
 def h_01(K, i):
+    """
+    Compute the h_01 function.
+
+    Parameters:
+    K (int): Total number of individuals
+    i (int): Number of individuals with a certain trait
+
+    Returns:
+    float: The result of the h_01 function
+    """
     key = ("h_01", K, i)
     if key in h_cache:
         return h_cache[key]
     
     def f(x, v):
+        # Compute the joint probability density function
         return f_sub(x) * (K - i) * F_sub(x)**(K - i - 1) * g_opt(v) * i * G_opt(v)**(i - 1)
     
+    # Compute the double integral
     result, _ = integrate.dblquad(f, -np.inf, np.inf, lambda v: -np.inf, lambda v: v)
     h_cache[key] = 1 - result
     return h_cache[key]
 
 def h_10(K, i):
+    """
+    Compute the h_10 function.
+
+    Parameters:
+    K (int): Total number of individuals
+    i (int): Number of individuals with a certain trait
+
+    Returns:
+    float: The result of the h_10 function
+    """
     key = ("h_10", K, i)
     if key in h_cache:
         return h_cache[key]
     
     def f(v, x):
+        # Compute the joint probability density function
         return g_sub(v) * i * G_sub(v)**(i - 1) * f_opt(x) * (K - i) * F_opt(x)**(K - i - 1)
     
+    # Compute the double integral
     result, _ = integrate.dblquad(f, -np.inf, np.inf, lambda x: -np.inf, lambda x: x)
     h_cache[key] = 1 - result
     return h_cache[key]
 
 def h_11(K, i):
+    """
+    Compute the h_11 function.
+
+    Parameters:
+    K (int): Total number of individuals
+    i (int): Number of individuals with a certain trait
+
+    Returns:
+    float: The result of the h_11 function
+    """
     key = ("h_11", K, i)
     if key in h_cache:
         return h_cache[key]
     
     def f(v, x):
+        # Compute the joint probability density function
         return g_opt(v) * i * G_opt(v)**(i - 1) * f_sub(x) * (K - i) * F_sub(x)**(K - i - 1)
     
+    # Compute the double integral
     result, _ = integrate.dblquad(f, -np.inf, np.inf, lambda x: -np.inf, lambda x: x)
     h_cache[key] = 1 - result
     return h_cache[key]
 
 def N(i, q_hat, gamma_hat, phi_hat, A, J, K, mean_00, mean_10):
+    """
+    Compute the N function.
+
+    Parameters:
+    i (int): Number of individuals with a certain trait
+    q_hat (float): Estimated probability of a certain trait
+    gamma_hat (float): Estimated probability of a certain action
+    phi_hat (float): Estimated probability of a certain outcome
+    A (int): Action taken
+    J (int): Outcome observed
+    K (int): Total number of individuals
+    mean_00 (float): Mean of the optimal distribution
+    mean_10 (float): Mean of the suboptimal distribution
+
+    Returns:
+    float: The result of the N function
+    """
     n1 = phi_hat * (1 - gamma_hat) * (1 - q_hat)**i * q_hat**(K - i)
     n2 = (1 - phi_hat) * gamma_hat * q_hat**i * (1 - q_hat)**(K - i)
     n3 = (1 - phi_hat) * (1 - gamma_hat) * (1 - q_hat)**i * q_hat**(K - i)
@@ -354,6 +426,23 @@ def N(i, q_hat, gamma_hat, phi_hat, A, J, K, mean_00, mean_10):
     return result * (mean_00 - mean_10)
 
 def B(i, q_hat, gamma_hat, phi_hat, A, J, K, mean_01, mean_11):
+    """
+    Compute the B function.
+
+    Parameters:
+    i (int): Number of individuals with a certain trait
+    q_hat (float): Estimated probability of a certain trait
+    gamma_hat (float): Estimated probability of a certain action
+    phi_hat (float): Estimated probability of a certain outcome
+    A (int): Action taken
+    J (int): Outcome observed
+    K (int): Total number of individuals
+    mean_01 (float): Mean of the suboptimal distribution
+    mean_11 (float): Mean of the optimal distribution
+
+    Returns:
+    float: The result of the B function
+    """
     b1 = (1 - phi_hat) * gamma_hat * (1 - q_hat)**i * q_hat**(K - i)
     b2 = phi_hat * (1 - gamma_hat) * q_hat**i * (1 - q_hat)**(K - i)
     b3 = phi_hat * gamma_hat * (1 - q_hat)**i * q_hat**(K - i)
@@ -393,12 +482,44 @@ def B(i, q_hat, gamma_hat, phi_hat, A, J, K, mean_01, mean_11):
     return result * (mean_11 - mean_01)
 
 def signal_ratio(s, rho_hat):
+    """
+    Compute the signal ratio.
+
+    Parameters:
+    s (int): Signal observed
+    rho_hat (float): Estimated probability of a certain signal
+
+    Returns:
+    float: The signal ratio
+    """
     return rho_hat / (1 - rho_hat) if s == 1 else (1 - rho_hat) / rho_hat
 
 def choice_1(signal_ratio, N, B):
+    """
+    Compute the choice.
+
+    Parameters:
+    signal_ratio (float): The signal ratio
+    N (float): The result of the N function
+    B (float): The result of the B function
+
+    Returns:
+    int: The choice (0 or 1)
+    """
     return 0 if B == 0 else (1 if signal_ratio > N / B else 0)
 
 def compute_choices(g_idx, genotype_matrix, Omega_matrix):
+    """
+    Compute choices based on the given genotype index and matrices.
+
+    Parameters:
+    g_idx (int): The index of the genotype
+    genotype_matrix (numpy array): The genotype matrix
+    Omega_matrix (numpy array): The Omega matrix
+
+    Returns:
+    numpy array: The choices for the given genotype
+    """
     rho_hat, q_hat, gamma_hat, phi_hat = genotype_matrix[:, g_idx]
     choice_matrix_row = np.zeros(Omega_matrix.shape[1])
     for o_idx in range(Omega_matrix.shape[1]):
@@ -411,6 +532,12 @@ def compute_choices(g_idx, genotype_matrix, Omega_matrix):
     return choice_matrix_row
 
 def main_computation():
+    """
+    Generate the Omega matrix and genotype matrix, and perform parallel computation to generate the choice matrix.
+
+    Returns:
+    numpy array: The choice matrix
+    """
     K = 3
     i_values = range(K + 1)
     s_values = [0, 1]
@@ -444,6 +571,34 @@ def main_computation():
 
     return choice_matrix
 
+def save_data(data, filename):
+    """
+    Save data to a file.
+
+    Parameters:
+    data (numpy array): The data to save
+    filename (str): The filename to save to
+
+    Notes:
+    This function uses numpy's save function to save the data.
+    """
+    np.save(filename, data)
+
+def load_data(filename):
+    """
+    Load data from a file.
+
+    Parameters:
+    filename (str): The filename to load from
+
+    Returns:
+    numpy array: The loaded data
+
+    Notes:
+    This function uses numpy's load function to load the data.
+    """
+    return np.load(filename)
+
 if __name__ == "__main__":
     print(f"Number of threads: {num_threads}")
     import time
@@ -452,13 +607,6 @@ if __name__ == "__main__":
     print(f"First 5 rows of the choice matrix:\n{choice_matrix[:5, :]}")
 
     # Save and load functionality
-    def save_data(data, filename):
-        np.save(filename, data)
-
-    def load_data(filename):
-        return np.load(filename)
-
-    # Example usage
     choice_file = "choice_matrix.npy"
     save_data(choice_matrix, choice_file)
     loaded_matrix = load_data(choice_file)
