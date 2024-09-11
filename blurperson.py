@@ -16,10 +16,9 @@ def blur_human_body(image_path, output_path):
     # Iterate over all detections
     for detection in detections:
         x1, y1, x2, y2, confidence, cls = detection
-        if cls == 0:  # Class 0 corresponds to 'person' in YOLOv5
-            # Extract the region of interest (the human body)
+        if cls == 0:  
             roi = img[int(y1):int(y2), int(x1):int(x2)]
-            # Apply Gaussian blur to the ROI
+            # Apply Gaussian blur to detected human body.
             roi_blurred = cv2.GaussianBlur(roi, (51, 51), 0)
             # Replace the original ROI with the blurred ROI in the image
             img[int(y1):int(y2), int(x1):int(x2)] = roi_blurred
