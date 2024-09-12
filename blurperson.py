@@ -28,6 +28,6 @@ def blur_human_body(image_path, output_path):
     print(f"Blurred image saved to {output_path}")
 
 # Usage
-image_path = 'left010400.png'
-output_path = 'output_image2.jpg'
+image_path = 'G:\YoloFrames\left000310.png'
+output_path = 'output_left000310.png'
 blur_human_body(image_path, output_path)
