@@ -1,19 +1,17 @@
 import cv2
 import torch
 
-# Load the YOLOv5 model
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
 # Function to blur human bodies in an image
 def blur_human_body(image_path, output_path):
-    # Load the image
     img = cv2.imread(image_path)
-
-    # Detect humans in the image using YOLOv5
+    if img is None:
+        print(f"Error: Could not read image {image_path}")
+        return
     results = model(img)
     detections = results.xyxy[0].numpy()
 
-    # Iterate over all detections
     for detection in detections:
         x1, y1, x2, y2, confidence, cls = detection
         if cls == 0:  
