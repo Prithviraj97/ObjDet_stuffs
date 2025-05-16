@@ -74,8 +74,6 @@ import csv
 
 # Load YOLOv5 or YOLOv8 model
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
-
-# Load video
 cap = cv2.VideoCapture('output.mp4')
 
 # Create a CSV file to store centroid coordinates
@@ -89,14 +87,9 @@ while cap.isOpened():
     if not ret:
         break
     
-    # Detect objects using YOLOv5 or YOLOv8
     results = model(frame)
-    
-    # Get the bounding box coordinates of the detected object
     if len(results.xyxy[0]) > 0:
         x1, y1, x2, y2, conf, cls = results.xyxy[0][0]
-        
-        # Calculate the centroid of the bounding box
         centroid_x = (x1 + x2) / 2
         centroid_y = (y1 + y2) / 2
         
@@ -105,13 +98,8 @@ while cap.isOpened():
             writer = csv.writer(file)
             writer.writerow([centroid_x.item(), centroid_y.item()])
         
-        # Draw the bounding box on the frame
         cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-        
-        # Draw the centroid on the frame
         cv2.circle(frame, (int(centroid_x), int(centroid_y)), 5, (0, 0, 255), -1)
-        
-        # Display the frame with bounding box and centroid
         cv2.imshow('Frame', frame)
         
     if cv2.waitKey(1) & 0xFF == ord('q'):
